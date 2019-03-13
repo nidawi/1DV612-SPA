@@ -1,0 +1,8 @@
+.EventCard {
+  animation: EventCardFade 1.5s;
+}
+
+@keyframes EventCardFade {
+  from { opacity: 0; }
+  to { opacity: 100; }
+}

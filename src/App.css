@@ -1,0 +1,44 @@
+.App {
+  position: absolute;
+  text-align: center;
+  min-height: 100% !important;
+  max-height: 100% !important;
+  min-width: 100% !important;
+  max-width: 100% !important;
+  overflow: auto;
+  background-color: #282c34;
+}
+
+.Content {
+  /*
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  */
+  font-size: calc(4px + 1.5vmin);
+  color: white;
+}
+
+.Settings-format {
+  font-size: calc(10px + 1.5vmin);
+}
+
+.Content-link {
+  color: #61dafb;
+}
+
+.Content-centered {
+  max-width: 60% !important;
+  margin: auto !important;
+}
+
+.Popover-img {
+  width: 100%;
+  height: 20%
+}
+
+.Content-right {
+  position: absolute !important;
+  float: right !important;
+}

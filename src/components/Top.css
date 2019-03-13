@@ -1,0 +1,20 @@
+.Top-logo {
+  animation: Top-logo-spin infinite 20s linear;
+  pointer-events: none;
+  height: 30px;
+}
+
+.Top-avatar {
+  pointer-events: none;
+  height: 30px;
+  border-radius: 15px;
+}
+
+@keyframes Top-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
