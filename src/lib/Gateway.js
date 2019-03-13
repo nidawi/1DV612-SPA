@@ -1,4 +1,6 @@
 // Gateway access wrapper
+import RequestError from './RequestError';
+
 const gatewayUrl = 'https://1dv612-gateway.nidawi.me';
 
 const request = (url, config) => {
@@ -17,8 +19,11 @@ const request = (url, config) => {
       else return res.json();
     })
     .then(res => {
-      if (res.code) reject(new Error(res.message));
-      else resolve(res);
+      // This is one of my errors.
+      if (res.code) {
+        if (res.code === 401) reject(new Error(res.message)); // 401 = invalid jwt
+        else reject(new RequestError(res.code, res.message));
+      } else resolve(res);
     })
     .catch(err => reject(err));
   })
@@ -123,6 +128,17 @@ export function getAccountSettings(username, token) {
     auth: token
   })
     .catch(() => []);
+}
+
+export function createDefaultAccountSettings(username, orgCode, token) {
+  return request(`accounts/${username}/settings`, {
+    method: 'POST',
+    auth: token,
+    body: [{
+      account: username,
+      orgCode: orgCode
+    }]
+  });
 }
 
 /**

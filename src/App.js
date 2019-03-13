@@ -24,6 +24,7 @@ class App extends Component {
   constructor(props) {
     super(props);
 
+    // We need to validate this account.
     const storedAccount = StorageDAO.getAccount();
 
     this.state = {
@@ -31,7 +32,8 @@ class App extends Component {
       account: storedAccount ? storedAccount.account : undefined,
       token: storedAccount ? storedAccount.token : undefined,
       github: { username: undefined, avatar: undefined },
-      visible: true
+      visible: true,
+      errorMessage: undefined
     };
   }
 
@@ -76,13 +78,13 @@ class App extends Component {
           <Container className="mt-2" fluid={true}>
             {
               this.state.state === STATE_LOGIN
-                ? <AuthForm onComplete={this._loginComplete}></AuthForm>
+                ? <AuthForm onComplete={this._loginComplete} onError={this._fatalError} message={this.state.errorMessage}></AuthForm>
                 : this.state.state === STATE_AUTHENTICATE
-                  ? <GithubAuth account={this.state.account} token={this.state.token} onComplete={this._authenticationComplete}></GithubAuth>
+                  ? <GithubAuth account={this.state.account} token={this.state.token} onComplete={this._authenticationComplete} onError={this._fatalError}></GithubAuth>
                   : this.state.state === STATE_SHOW_DASHBOARD
-                    ? <Dashboard token={this.state.token} account={this.state.account} visible={this.state.visible} ></Dashboard>
+                    ? <Dashboard token={this.state.token} account={this.state.account} visible={this.state.visible} onError={this._fatalError}></Dashboard>
                     : this.state.state === STATE_SHOW_SETTINGS
-                      ? <Settings token={this.state.token} account={this.state.account}></Settings>
+                      ? <Settings token={this.state.token} account={this.state.account} onError={this._fatalError}></Settings>
                       : this.state.state === STATE_SHOW_STATUS
                         ? <Status></Status>
                         : undefined
@@ -99,11 +101,11 @@ class App extends Component {
   _swapToSettings = () => {
     this.setState({ state: STATE_SHOW_SETTINGS });
   }
-  _swapToLogin = (logout) => {
+  _swapToLogin = (logout, msg) => {
     if (logout) {
       socket.emit('un-subscribe', { authentication: `bearer ${this.state.token}` })
       StorageDAO.clearAccount();
-      this.setState({ account: undefined, token: undefined, github: { username: undefined, avatar: undefined } });
+      this.setState({ account: undefined, token: undefined, github: { username: undefined, avatar: undefined }, errorMessage: msg });
     }
     this.setState({ state: STATE_LOGIN });
   }
@@ -112,7 +114,7 @@ class App extends Component {
   }
 
   _loginComplete = (username, token) => {
-    this.setState({ state: STATE_AUTHENTICATE, account: username, token: token });
+    this.setState({ state: STATE_AUTHENTICATE, account: username, token: token, errorMessage: undefined });
     StorageDAO.setAccount(username, token);
   }
   _authenticationComplete = (success, githubUser) => {
@@ -127,6 +129,11 @@ class App extends Component {
           socket.emit('subscribe', { authentication: `bearer ${this.state.token}` });
         });
     }
+  }
+  _fatalError = (err) => {
+    // In case of a fatal error, we clear all values and swap back to login.
+    console.log(`Fatal error: ${err.message}`);
+    this._swapToLogin(true, { type: 'danger', msg: 'Whoops! Something broke! Please, log in again.' });
   }
 }
 

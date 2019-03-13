@@ -60,7 +60,7 @@ class EventList extends Component {
           this._displayEvents();
         }
       })
-      .catch(() => undefined);
+      .catch(err => this.props.onError(err));
   }
 
   componentDidMount = () => {

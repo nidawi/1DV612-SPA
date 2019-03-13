@@ -35,7 +35,7 @@ class Dashboard extends Component {
       <Container className="mt-3 Content-right">
         <Row >
           <Col xs={{ span: 9 }}>
-            <EventList token={this.props.token} account={this.props.account} visible={this.props.visible} ></EventList>
+            <EventList token={this.props.token} account={this.props.account} visible={this.props.visible} onError={this.props.onError}></EventList>
           </Col>
         </Row>
       </Container>

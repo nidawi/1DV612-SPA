@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import socket from '../lib/Socket';
 import * as notifications from '../lib/Notifications';
-import { getOrganizations, getAccountEmail, getAccountSettings, updateAccountSettings, setAccountEmail, addOrgHook, deleteOrgHook, getAccountPushSubscription, addAccountPushSubscription, deleteAccountPushSubscription } from '../lib/Gateway';
+import { getOrganizations, getAccountEmail, getAccountSettings, updateAccountSettings, setAccountEmail, addOrgHook, deleteOrgHook, getAccountPushSubscription, addAccountPushSubscription, deleteAccountPushSubscription, createDefaultAccountSettings } from '../lib/Gateway';
 
 // Import React Bootstrap stuff
 import { InputGroup, FormControl, Button, Col, OverlayTrigger, Popover, Form, Container, ProgressBar, Card, Row, Collapse } from 'react-bootstrap';
@@ -65,7 +65,7 @@ class Settings extends Component {
           this.setState({ orgs: res[0].filter(a => a.hasHookPermissions), email: res[1], settings: res[2], pushSub: res[3], loaded: true, selectedOrg: undefined, selectedOrgSettings: undefined })
         }
       })
-      .catch(() => this._handleLoadError());
+      .catch(err => this._handleLoadError(err));
   }
   // {Notification.permission}
   _renderLoading = () => {
@@ -236,10 +236,20 @@ class Settings extends Component {
         selectedOrgSettings: undefined
       });
     } else if (org.hasHookPermissions) {
-      this.setState({
-        selectedOrgSettings: this.state.settings.find(a => a.orgCode === org.code),
-        selectedOrg: org
-      });
+      const settings = this.state.settings.find(a => a.orgCode === org.code);
+      if (!settings) {
+        console.log('No settings found for ', org.code, 'for account', this.props.account);
+        // We need to create default.
+        this._setLoading();
+        createDefaultAccountSettings(this.props.account, org.code, this.props.token)
+          .then(() => this._loadData())
+          .catch(() => this._handleLoadError());
+      } else {
+        this.setState({
+          selectedOrgSettings: settings,
+          selectedOrg: org
+        });
+      }
     }
   }
   _handleOrgSettingChange = (id, value) => {
@@ -260,7 +270,7 @@ class Settings extends Component {
         this.state.emailChanged ? setAccountEmail(this.props.account, this.props.token, this.state.email) : undefined
       ])
         .then(() => this.setState({ loaded: true, selectedOrg: undefined, selectedOrgSettings: undefined }))
-        .catch(() => this.setState({ loadType: LOAD_ERROR }));
+        .catch(() => this._handleLoadError());
     }
   }
   _handleTrackClick = () => {
@@ -297,10 +307,10 @@ class Settings extends Component {
       .then(() => this._loadData())
       .catch(() => this._handleLoadError());
   }
-  _handleLoadError = () => {
+  _handleLoadError = (err) => {
     if (this._mounted) {
       this.setState({ loadType: LOAD_ERROR });
-      setTimeout(() => this._loadData(), 5000);
+      setTimeout(() => this.props.onError(err), 2000);
     }
   }
   _setLoading = () => {

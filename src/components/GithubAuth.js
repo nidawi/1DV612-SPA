@@ -29,12 +29,19 @@ class Top extends Component {
     getAccount(this.props.token)
       .then(res => {
         // This means the user is already authenticated.
-        this.props.onComplete(true, res)
+        this.props.onComplete(true, res);
       })
-      .catch(() => initiateGithubAuthentication(this.props.account)
-        .then(res => this._initiateAuthentication(res))
-        .catch(err => this._authenticationFailed(err))
-      );
+      .catch(err => {
+        if (err.code) {
+          // One of my errors. Most likely that they do not have a github token.
+          initiateGithubAuthentication(this.props.account)
+            .then(res => this._initiateAuthentication(res))
+            .catch(err => this.props.onError(err));
+        } else {
+          // Fatal error.
+          this.props.onError(err);
+        }
+      });
   }
 
   _initiateAuthentication = res => {
@@ -50,12 +57,6 @@ class Top extends Component {
     } else {
       this._authenticationFailed();
     }
-  }
-  _authenticationFailed = err => {
-    this.setState({
-      text: 'Authentication failed...',
-      type: 'danger'
-    });
   }
 
   render() {

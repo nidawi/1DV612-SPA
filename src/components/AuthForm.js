@@ -15,7 +15,7 @@ class App extends Component {
       validated: false,
       suppliedUsername: '',
       suppliedPassword: '',
-      message: undefined
+      message: props.message || undefined
     };
   }
 
@@ -47,7 +47,6 @@ class App extends Component {
       .catch(err => this._setMessage('danger', err.message))
   }
   _loginSuccessful = (res) => {
-    // this._setMessage('info', 'Logged in!');
     this.props.onComplete(this.state.suppliedUsername, res.token);
   }
 
